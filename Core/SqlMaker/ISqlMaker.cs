@@ -12,6 +12,6 @@ namespace Core.SqlMaker
         string InsertMaker(TableModel o);
         string UpdateMaker(TableModel o);
         string DeleteMaker(TableModel o);
-        string SelectMaker(Condition condition,string tableName);
+        string SelectMaker(Query query,string tableName);
     }
 }

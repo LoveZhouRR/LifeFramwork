@@ -8,7 +8,7 @@ namespace Core.Model
 {
     public class AbstractModel
     {
-        public short? Id { get; set; }
+        public int? Id { get; set; }
         
         public AbstractModel()
         {

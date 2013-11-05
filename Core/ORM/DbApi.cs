@@ -35,10 +35,10 @@ namespace Core.ORM
             SqlHelper.ExecuteNonQuery(sql);
         }
 
-        public IList<T> Select<T>(Condition condition)where T : AbstractModel,new ()
+        public IList<T> Select<T>(Query query)where T : AbstractModel,new ()
         {
             var tableModel = _mapper.MapToTable(typeof (T));
-            string sql =_sqlMaker.SelectMaker(condition,tableModel.TableName);
+            string sql =_sqlMaker.SelectMaker(query,tableModel.TableName);
             var ds = SqlHelper.ExecuteDataSet(sql);
             return _mapper.MapToModel<T>(ds);
         }

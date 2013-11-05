@@ -3,33 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Model;
 
 namespace Core.SqlMaker
 {
     public class SqlServerMaker:ISqlMaker
     {
 
-        public string SelectMaker(Model.Condition condition,string tableName)
+        public string SelectMaker(Query query,string tableName)
         {
             StringBuilder sb=new StringBuilder();
-            sb.Append("Select * from _TableName Where 1=1 ");
-            string equal = "";
+            sb.Append("Select * from _TableName Where 1=1 And ");
+            string queryStr = MakeWhereStr(query.WhereExpression);
             string orderBy = "";
-            string ASC = condition.ASC ? "ASC" : "DESC";
-            foreach (var equalCondition in condition.equalConditions)
-            {
-                equal += " And " + equalCondition.Key + " = " + ToSqlString(equalCondition.Value);
-            }
-            sb.Append(equal);
-            if (string.IsNullOrEmpty(condition.OrderBy))
+            string ASC = query.ASC ? "ASC" : "DESC";
+            sb.Append(queryStr);
+            if (string.IsNullOrEmpty(query.Orderby))
             {
                 orderBy = " Order By Id ASC";
             }
             else
             {
-                orderBy = " Order By " + condition.OrderBy + ASC;
+                orderBy = " Order By " + query.Orderby + ASC;
             }
-
             sb.Append(orderBy);
             sb.Replace("_TableName", tableName);
             return sb.ToString();
@@ -102,6 +98,50 @@ namespace Core.SqlMaker
             {
                 return "'" + o.ToString().Replace("'","''") + "'";
             }
+        }
+
+
+        private string MakeWhereStr(OpExpression opExpression)
+        {
+            if (opExpression == null)
+            {
+                return "";
+            }
+            StringBuilder sb=new StringBuilder();
+
+            switch ((int)opExpression.joinOp)
+            {
+                //叶子
+                case 0:
+                    sb.Append(opExpression.Condition.key)
+  .Append(GetOpStr((int)opExpression.Condition.op))
+  .Append(ToSqlString(opExpression.Condition.value));
+                    break;
+                case 1:
+                    sb.Append(" ( ").Append(MakeWhereStr(opExpression.Left)).Append(" And ").Append(MakeWhereStr(opExpression.Right)).Append(" ) ");
+                    break;
+                case 2:
+                    sb.Append(" ( ").Append(MakeWhereStr(opExpression.Left)).Append(" Or ").Append(MakeWhereStr(opExpression.Right)).Append(" ) ");
+                    break;
+
+            }
+            return sb.ToString();
+        }
+
+
+        private string GetOpStr(int op)
+        {
+            string result = "";
+            switch (op)
+            {
+                case 1:
+                    result = " = ";
+                    break;
+                case 2:
+                    result = "<>";
+                    break;
+            }
+            return result;
         }
     }
 }
